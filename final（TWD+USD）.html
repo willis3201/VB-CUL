@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vbuygaming - 售價計算系統</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .calculator-container { background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        h2 { text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; color: #555; margin-bottom: 8px; }
+        select, input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s; }
+        select:focus, input[type="number"]:focus { border-color: #4CAF50; outline: none; }
+        .help-text { font-size: 0.85em; color: #888; margin-top: 4px; display: block; }
+        
+        /* 單選按鈕樣式 */
+        .radio-group { display: flex; gap: 15px; margin-bottom: 10px; }
+        .radio-label { display: flex; align-items: center; font-weight: normal; color: #333; cursor: pointer; font-size: 0.95em; }
+        .radio-label input { margin-right: 6px; width: auto; }
+        
+        /* 頂部渠道切換樣式 */
+        .channel-switch { display: flex; justify-content: center; gap: 10px; background: #e0f2f1; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
+        .channel-switch .radio-label { font-weight: 600; color: #00695c; font-size: 1.1em; }
+
+        .result-panel { background-color: #e8f5e9; border-left: 6px solid #4CAF50; padding: 20px; border-radius: 8px; margin-top: 25px; }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; color: #333; }
+        .final-price { font-size: 1.6em; font-weight: bold; color: #2e7d32; border-top: 1px solid #c8e6c9; padding-top: 15px; margin-top: 10px; display: flex; justify-content: space-between; }
+        
+        /* 區塊顯示控制 */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="calculator-container">
+    <h2>Vbuygaming</h2>
+
+    <div class="channel-switch">
+        <label class="radio-label">
+            <input type="radio" name="mainChannel" value="usd" checked>
+            🇺🇸 美金渠道
+        </label>
+        <label class="radio-label">
+            <input type="radio" name="mainChannel" value="twd">
+            🇹🇼 台卡渠道
+        </label>
+    </div>
+
+    <div id="usd-section">
+        <div class="form-group">
+            <label>1. 原價美金</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="usdPriceMode" value="standard" checked> 常見港幣面額</label>
+                <label class="radio-label"><input type="radio" name="usdPriceMode" value="custom"> 自訂美金</label>
+            </div>
+            <select id="usd-tier">
+                <option value="0">請選擇對應的港幣原價...</option>
+                <option value="0.99">HK$ 8 (對應 US$ 0.99)</option>
+                <option value="4.99">HK$ 38 (對應 US$ 4.99)</option>
+                <option value="9.99">HK$ 78 (對應 US$ 9.99)</option>
+                <option value="11.99">HK$ 98 (對應 US$ 11.99)</option>
+                <option value="14.99">HK$ 118 (對應 US$ 14.99)</option>
+                <option value="19.99">HK$ 158 (對應 US$ 19.99)</option>
+                <option value="29.99">HK$ 238 (對應 US$ 29.99)</option>
+                <option value="49.99">HK$ 388 / 418 (對應 US$ 49.99)</option>
+                <option value="99.99">HK$ 788 (對應 US$ 99.99)</option>
+            </select>
+            <input type="number" id="usd-custom" class="hidden" placeholder="輸入美金原價 (例如: 19.99)" step="0.01" style="margin-top:10px;">
+        </div>
+
+        <div class="form-group">
+            <label>2. 來貨 (USD -> CNY)</label>
+            <input type="number" id="usd-rate" placeholder="例如: 5.75" step="0.01">
+            <span class="help-text">1 美金 = ? 人民幣 (自動記憶)</span>
+        </div>
+    </div>
+
+    <div id="twd-section" class="hidden">
+        <div class="form-group">
+            <label>1. 原價台幣</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="twdPriceMode" value="standard" checked> 常見港幣面額</label>
+                <label class="radio-label"><input type="radio" name="twdPriceMode" value="custom"> 自訂台幣</label>
+            </div>
+            <select id="twd-tier">
+                <option value="0">請選擇對應的港幣原價...</option>
+                <option value="33">HK$ 8 (對應 NT$ 33)</option>
+                <option value="170">HK$ 38 (對應 NT$ 170)</option>
+                <option value="330">HK$ 78 (對應 NT$ 330)</option>
+                <option value="390">HK$ 98 (對應 NT$ 390)</option>
+                <option value="490">HK$ 118 (對應 NT$ 490)</option>
+                <option value="590">HK$ 158 (對應 NT$ 590 / 670)</option>
+                <option value="990">HK$ 238 (對應 NT$ 990)</option>
+                <option value="1690">HK$ 388 / 418 (對應 NT$ 1690)</option>
+                <option value="3290">HK$ 788 (對應 NT$ 3290)</option>
+            </select>
+            <input type="number" id="twd-custom" class="hidden" placeholder="輸入台幣原價 (例如: 990)" step="1" style="margin-top:10px;">
+        </div>
+
+        <div class="form-group">
+            <label>2. 來貨 (TWD -> CNY)</label>
+            <input type="number" id="twd-rate" placeholder="例如: 0.180" step="0.001">
+            <span class="help-text">1 台幣 = ? 人民幣 (自動記憶，例如: 0.180)</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>3. 預期利潤 (CNY)</label>
+        <input type="number" id="profit-cny" placeholder="例如: 30" step="1">
+    </div>
+
+    <div class="form-group">
+        <label>4. 實際結算匯率 (HKD -> CNY)</label>
+        <input type="number" id="real-rate" placeholder="例如: 0.92" step="0.001">
+        <span class="help-text">1 港幣等於多少人民幣 (例如: 0.92)</span>
+    </div>
+
+    <div class="result-panel">
+        <div class="result-row">
+            <span id="label-original-price">美金原價 (USD):</span>
+            <span id="display-original-price">$ 0.00</span>
+        </div>
+        <div class="result-row">
+            <span>進貨成本 (CNY):</span>
+            <span id="display-cost-cny">¥ 0.00</span>
+        </div>
+        <div class="result-row">
+            <span>含利潤總額 (CNY):</span>
+            <span id="display-total-cny">¥ 0.00</span>
+        </div>
+        <div class="final-price">
+            <span>建議售價 (HKD):</span>
+            <span id="display-final-hkd">HK$ 0</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 獲取 DOM 元素
+    const channelRadios = document.querySelectorAll('input[name="mainChannel"]');
+    const usdSection = document.getElementById('usd-section');
+    const twdSection = document.getElementById('twd-section');
+
+    const usdPriceRadios = document.querySelectorAll('input[name="usdPriceMode"]');
+    const usdTierSelect = document.getElementById('usd-tier');
+    const usdCustomInput = document.getElementById('usd-custom');
+    const usdRateInput = document.getElementById('usd-rate');
+
+    const twdPriceRadios = document.querySelectorAll('input[name="twdPriceMode"]');
+    const twdTierSelect = document.getElementById('twd-tier');
+    const twdCustomInput = document.getElementById('twd-custom');
+    const twdRateInput = document.getElementById('twd-rate');
+
+    const profitCnyInput = document.getElementById('profit-cny');
+    const realRateInput = document.getElementById('real-rate');
+
+    const labelOriginalPrice = document.getElementById('label-original-price');
+    const displayOriginalPrice = document.getElementById('display-original-price');
+    const displayCostCny = document.getElementById('display-cost-cny');
+    const displayTotalCny = document.getElementById('display-total-cny');
+    const displayFinalHkd = document.getElementById('display-final-hkd');
+
+    // 初始化與讀取記憶
+    window.onload = function() {
+        if(localStorage.getItem('usdRate')) usdRateInput.value = localStorage.getItem('usdRate');
+        if(localStorage.getItem('twdRate')) twdRateInput.value = localStorage.getItem('twdRate');
+        if(localStorage.getItem('profitCny')) profitCnyInput.value = localStorage.getItem('profitCny');
+        if(localStorage.getItem('realRate')) realRateInput.value = localStorage.getItem('realRate');
+        calculate();
+    }
+
+    // 渠道切換邏輯
+    channelRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'usd') {
+                usdSection.classList.remove('hidden');
+                twdSection.classList.add('hidden');
+                labelOriginalPrice.innerText = "美金原價 (USD):";
+            } else {
+                usdSection.classList.add('hidden');
+                twdSection.classList.remove('hidden');
+                labelOriginalPrice.innerText = "台幣原價 (TWD):";
+            }
+            calculate();
+        });
+    });
+
+    // 美金自訂切換
+    usdPriceRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'custom') {
+                usdTierSelect.classList.add('hidden');
+                usdCustomInput.classList.remove('hidden');
+            } else {
+                usdTierSelect.classList.remove('hidden');
+                usdCustomInput.classList.add('hidden');
+            }
+            calculate();
+        });
+    });
+
+    // 台幣自訂切換
+    twdPriceRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'custom') {
+                twdTierSelect.classList.add('hidden');
+                twdCustomInput.classList.remove('hidden');
+            } else {
+                twdTierSelect.classList.remove('hidden');
+                twdCustomInput.classList.add('hidden');
+            }
+            calculate();
+        });
+    });
+
+    // 核心計算邏輯
+    function calculate() {
+        const currentChannel = document.querySelector('input[name="mainChannel"]:checked').value;
+        const profitCny = parseFloat(profitCnyInput.value) || 0;
+        const realRate = parseFloat(realRateInput.value) || 0;
+        
+        let originalPrice = 0;
+        let costCny = 0;
+
+        if (currentChannel === 'usd') {
+            // 處理美金邏輯
+            const mode = document.querySelector('input[name="usdPriceMode"]:checked').value;
+            originalPrice = mode === 'custom' ? (parseFloat(usdCustomInput.value) || 0) : (parseFloat(usdTierSelect.value) || 0);
+            const usdRate = parseFloat(usdRateInput.value) || 0;
+            costCny = originalPrice * usdRate;
+            
+            localStorage.setItem('usdRate', usdRateInput.value);
+            displayOriginalPrice.innerText = `$ ${originalPrice.toFixed(2)}`;
+        } else {
+            // 處理台幣邏輯
+            const mode = document.querySelector('input[name="twdPriceMode"]:checked').value;
+            originalPrice = mode === 'custom' ? (parseFloat(twdCustomInput.value) || 0) : (parseFloat(twdTierSelect.value) || 0);
+            const twdRate = parseFloat(twdRateInput.value) || 0;
+            costCny = originalPrice * twdRate;
+            
+            localStorage.setItem('twdRate', twdRateInput.value);
+            displayOriginalPrice.innerText = `NT$ ${originalPrice.toFixed(0)}`;
+        }
+
+        // 儲存共用設定
+        localStorage.setItem('profitCny', profitCnyInput.value);
+        localStorage.setItem('realRate', realRateInput.value);
+
+        // 結算
+        const totalCny = costCny + profitCny;
+        let finalHkd = 0;
+        if (realRate > 0) {
+            finalHkd = totalCny / realRate;
+        }
+
+        displayCostCny.innerText = `¥ ${costCny.toFixed(2)}`;
+        displayTotalCny.innerText = `¥ ${totalCny.toFixed(2)}`;
+        displayFinalHkd.innerText = `HK$ ${Math.ceil(finalHkd)}`; 
+    }
+
+    // 監聽所有輸入變更
+    const inputs = [usdTierSelect, usdCustomInput, usdRateInput, twdTierSelect, twdCustomInput, twdRateInput, profitCnyInput, realRateInput];
+    inputs.forEach(input => input.addEventListener('input', calculate));
+    usdTierSelect.addEventListener('change', calculate);
+    twdTierSelect.addEventListener('change', calculate);
+
+</script>
+</body>
+</html>
